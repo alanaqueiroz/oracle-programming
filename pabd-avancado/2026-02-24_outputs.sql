@@ -22,7 +22,7 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('DESCRICAO DO ERRO: ' || SQLERRM);
         DBMS_OUTPUT.PUT_LINE('LINHA DO ERRO: ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
 END;
-------------------------
+
 DECLARE
     V_JOB_ID HR.JOBS.JOB_ID%TYPE;
     V_JOB_TITLE HR.JOBS.JOB_TITLE%TYPE;
@@ -49,7 +49,7 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('DESCRICAO DO ERRO: ' || SQLERRM);
         DBMS_OUTPUT.PUT_LINE('LINHA DO ERRO: ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
 END;
-------------------------
+
 CREATE OR REPLACE
 PROCEDURE PROC_RETORNANOMECARGO (P_JOBID IN HR.JOBS.JOB_ID%TYPE,
                                 P_JORTITLE OUT HR.JOBS.JOB_TITLE%TYPE,
@@ -66,7 +66,7 @@ BEGIN
         WHERE JOB_ID = P_JOBID;
         P_SAIDA := 0;
     ELSE
-        P_SAIDA := -1; --NÃO EXISTE CARGO
+        P_SAIDA := -1; -- NÃO EXISTE CARGO
     END IF;
     COMMIT;
 EXCEPTION
@@ -77,7 +77,7 @@ EXCEPTION
         DBMS_OUTPUT.PUT_LINE('DESCRICAO DO ERRO: ' || SQLERRM);
         DBMS_OUTPUT.PUT_LINE('LINHA DO ERRO: ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
 END;
-------------------------
+
 DECLARE
     NOME_CARGO HR.JOBS.JOB_TITLE%TYPE;
     RETORNO NUMBER(5);
@@ -91,3 +91,60 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('ERRO DO EXCEPTION: ' || RETORNO);
     END IF;
 END;
+
+
+-- TESTE DA PROCEDURE
+SET SERVEROUTPUT ON;
+
+-- Limpa a tabela antes dos testes
+BEGIN
+    DELETE FROM PESSOA;
+    COMMIT;
+END;
+/
+
+-- TEST 1: Inserção válida (esperado P_SAIDA = 0)
+DECLARE
+    v_saida NUMBER;
+BEGIN
+    PROC_INSERIR_PESSOA(1, 'Fulano', 1000.00, v_saida);
+    DBMS_OUTPUT.PUT_LINE('TEST 1 - INSERCAO VALIDA: P_SAIDA='||v_saida);
+END;
+/
+
+-- TEST 2: Inserção duplicada (esperado P_SAIDA = -1)
+DECLARE
+    v_saida NUMBER;
+BEGIN
+    PROC_INSERIR_PESSOA(1, 'Fulano', 1000.00, v_saida);
+    DBMS_OUTPUT.PUT_LINE('TEST 2 - ID_DUPLICADO: P_SAIDA='||v_saida);
+END;
+/
+
+-- TEST 3: ID fora da faixa (0) (esperado P_SAIDA = -2)
+DECLARE
+    v_saida NUMBER;
+BEGIN
+    PROC_INSERIR_PESSOA(0, 'Teste', 100.00, v_saida);
+    DBMS_OUTPUT.PUT_LINE('TEST 3 - ID_FORA_DA_FAIXA: P_SAIDA='||v_saida);
+END;
+/
+
+-- TEST 4: Nome muito longo (61 caracteres) (esperado P_SAIDA = -3)
+DECLARE
+    v_saida NUMBER;
+    v_nome VARCHAR2(100) := RPAD('A',61,'A');
+BEGIN
+    PROC_INSERIR_PESSOA(2, v_nome, 100.00, v_saida);
+    DBMS_OUTPUT.PUT_LINE('TEST 4 - NOME_LONGO: P_SAIDA='||v_saida);
+END;
+/
+
+-- TEST 5: Salário inválido (negativo) (esperado P_SAIDA = -4)
+DECLARE
+    v_saida NUMBER;
+BEGIN
+    PROC_INSERIR_PESSOA(3, 'Beltrano', -1, v_saida);
+    DBMS_OUTPUT.PUT_LINE('TEST 5 - SALARIO_INVALIDO: P_SAIDA='||v_saida);
+END;
+/
