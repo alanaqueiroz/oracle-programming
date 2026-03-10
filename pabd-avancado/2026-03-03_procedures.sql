@@ -12,13 +12,18 @@ PROCEDURE PROC_INSERIR_PESSOA (P_ID IN HR.PESSOA.ID%TYPE,
 IS
     V_QTDE NUMBER(5);
 BEGIN
-    IF P_ID >= 1 AND P_ID <= 99999 THEN
+    IF SELECT COUNT(*) INTO v_count FROM PESSOA WHERE ID = p_id THEN
+    IF v_count > 0 THEN
+        P_SAIDA := -1;
+        RETURN;
+    END IF;
+    IF P_ID < 1 AND P_ID > 99999 THEN
         IF LENGTH(P_NOME) >= 1 AND LENGTH(P_NOME) <= 60 THEN
             IF P_SALARIO >= 0 AND P_SALARIO <= 99999999.99 THEN
                 SELECT COUNT(*) INTO V_QTDE FROM PESSOA WHERE ID = P_ID;
                 IF V_QTDE = 0 THEN
                     INSERT INTO PESSOA (ID, NOME, SALARIO)
-                    VALUES (P_ID, P_NOME, P_SALARIO);
+                            VALUES (P_ID, P_NOME, P_SALARIO);
                     P_SAIDA := 0; -- INSERIDO COM SUCESSO
                 ELSE
                     P_SAIDA := -1; -- ID JA EXISTE NA TABELA
@@ -26,18 +31,24 @@ BEGIN
             ELSE
                 P_SAIDA := -4; -- SALARIO FORA DA FAIXA ACEITÁVEL
             END IF;
-        ELSE
+        ELSE      
             P_SAIDA := -3; -- NOME TEM QUE TER ENTRE 1 E 60 CARACTERES
         END IF;
     ELSE
         P_SAIDA := -2; -- ID FORA DA FAIXA ACEITÁVEL
     END IF;
-
+    IF LENGTH(p_nome) < 1 OR LENGTH(p_nome) > 60 THEN
+        P_SAIDA := -3;
+        RETURN;
+    END IF;
     COMMIT;
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
         P_SAIDA := SQLCODE;
+        --DBMS_OUTPUT.PUT_LINE('CÓDIGO DO ERRO: ' || SQLCODE);
+        --DBMS_OUTPUT.PUT_LINE('DESCRICAO DO ERRO: ' || SQLERRM);
+        --DBMS_OUTPUT.PUT_LINE('LINHA DO ERRO: ' || DBMS_UTILITY.FORMAT_ERROR_BACKTRACE);
 END PROC_INSERIR_PESSOA;
 
 -- TESTE DA PROCEDURE
