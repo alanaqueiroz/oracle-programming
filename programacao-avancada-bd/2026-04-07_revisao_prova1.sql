@@ -43,7 +43,7 @@ BEGIN
         END LOOP;
         V_RETORNO := 0; --SUCESSO
     ELSE
-        V_RETORNO := -1; --PERCENTUAL FORA DA FAIXA ACEIT
+        V_RETORNO := -1; --PERCENTUAL FORA DA FAIXA ACEITÁVEL
     END IF;
     COMMIT;
     RETURN V_RETORNO;
@@ -73,9 +73,11 @@ END;
 
 -------------------------------------------------
 
---CRIAR OS IF OU AS DAS DUAS VARIAVEIS ABAIXO
--- V_ERRO NUMBER;
--- V_DESC_ERRO VARCHAR2(1000);
+/*
+Criar os IF ou AS das duas variaveis:
+V_ERRO NUMBER;
+V_DESC_ERRO VARCHAR2(1000);
+*/
 
 CREATE OR REPLACE FUNCTION AUMENTA_SALARIO_AQB(P_PERC IN NUMBER)
 RETURN NUMBER
@@ -124,8 +126,15 @@ EXCEPTION
     RETURN SQLCODE; -- SE NAO FOR FUNCTION, REMOVER O RETURN
 END;
 
----------------------------------
---ATIVIDADE
+---------------------------------------------
+
+/* ATIVIDADE
+a) Receber os valores para RA e NOME do novo aluno; 
+b) Checar o parametro de entrada NOME de acordo com o tamanho do campo a ser utilizado na alteracao, retornando -999;
+c) Verificar a existencia do RA na tabela e caso nao exista, retornar -998;
+d) Caso o NOME do aluno seja alterado, retornar 0;
+e) Diretiva EXCEPTION para retornar o valor do SQLCODE, caso aconteça uma exceção não tratada.
+*/
 
 CREATE TABLE ALUNO(
     RA NUMBER PRIMARY KEY,
@@ -134,44 +143,8 @@ CREATE TABLE ALUNO(
     COD_CURSO NUMBER(5) NOT NULL --FK
 )
 
---a) Receber os valores para RA e NOME do novo aluno; 
-CREATE OR REPLACE FUNCTION ATUALIZA_ALUNO(P_RA IN ALUNO.RA%TYPE, P_NOME IN ALUNO.NOME%TYPE)
-RETURN NUMBER
-IS
-    V_RETORNO NUMBER(5);
-BEGIN
-    --b) Checar o parametro de entrada NOME de acordo com o tamanho do campo a ser utilizado na alteracao, retornando -999;
-    IF LENGTH(P_NOME) > 120 THEN
-        RETURN -999;
-    END IF;
-
-    --c) Verificar a existencia do RA na tabela e caso nao exista, retornar -998;
-    SELECT COUNT(*) INTO V_RETORNO FROM ALUNO WHERE RA = P_RA;
-    IF V_RETORNO = 0 THEN
-        RETURN -998;
-    END IF;  
-
-    --d) Caso o NOME do aluno seja alterado, retornar 0;
-    UPDATE ALUNO SET NOME = P_NOME WHERE RA = P_RA;
-    IF SQL%ROWCOUNT > 0 THEN
-        RETURN 0;
-    END IF;
-
-    --e) Diretiva EXCEPTION para retornar o valor do SQLCODE, caso aconteça uma exceção não tratada.
-EXCEPTION
-    WHEN OTHERS THEN
-        RETURN SQLCODE;
-END;
-
----------------------------------
---a) Receber os valores para RA e NOME do novo aluno; 
---b) Checar o parametro de entrada NOME de acordo com o tamanho do campo a ser utilizado na alteracao, retornando -999;
---c) Verificar a existencia do RA na tabela e caso nao exista, retornar -998;
---d) Caso o NOME do aluno seja alterado, retornar 0;
---e) Diretiva EXCEPTION para retornar o valor do SQLCODE, caso aconteça uma exceção não tratada.
-
 CREATE OR REPLACE FUNCTION FUNC_ATUALIZA_ALUNO(P_RA IN ALUNO.RA%TYPE, P_NOME IN ALUNO.NOME%TYPE)
-RETURN
+RETURN NUMBER
 IS
     V_RETORNO NUMBER(5);
     V_QTDE NUMBER(5);
@@ -207,4 +180,36 @@ EXCEPTION
             (SEQ_LOG_EXECUCAO.NEXTVAL, V_ERRO, V_DESC_ERRO, DBMS_UTILITY.FORMAT_ERROR_BACKTRACE, 'FUNC_ATUALIZA_ALUNO', 'P_RA = ' || P_RA || ', P_NOME = ' || P_NOME, SYSDATE, USER, 'N', NULL);
         COMMIT;
     RETURN SQLCODE;
+END;
+
+
+-- Outro modo:
+
+-- a) Receber os valores para RA e NOME do novo aluno; 
+CREATE OR REPLACE FUNCTION ATUALIZA_ALUNO(P_RA IN ALUNO.RA%TYPE, P_NOME IN ALUNO.NOME%TYPE)
+RETURN NUMBER
+IS
+    V_RETORNO NUMBER(5);
+BEGIN
+    -- b) Checar o parametro de entrada NOME de acordo com o tamanho do campo a ser utilizado na alteracao, retornando -999;
+    IF LENGTH(P_NOME) > 120 THEN
+        RETURN -999;
+    END IF;
+
+    -- c) Verificar a existencia do RA na tabela e caso nao exista, retornar -998;
+    SELECT COUNT(*) INTO V_RETORNO FROM ALUNO WHERE RA = P_RA;
+    IF V_RETORNO = 0 THEN
+        RETURN -998;
+    END IF;  
+
+    -- d) Caso o NOME do aluno seja alterado, retornar 0;
+    UPDATE ALUNO SET NOME = P_NOME WHERE RA = P_RA;
+    IF SQL%ROWCOUNT > 0 THEN
+        RETURN 0;
+    END IF;
+
+    -- e) Diretiva EXCEPTION para retornar o valor do SQLCODE, caso aconteça uma exceção não tratada.
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN SQLCODE;
 END;

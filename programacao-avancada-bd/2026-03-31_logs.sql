@@ -167,7 +167,7 @@ EXCEPTION
         ROLLBACK;
 END;
 
---------------------------------------
+---------------------------------------------
 
 DECLARE
     RETORNO NUMBER(5);
@@ -176,7 +176,8 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Retorno da função: ' || RETORNO);
 END;
 
---------------------------------------
+---------------------------------------------
+
 DROP TABLE FUNCIONARIOS_AQB_LOG;
 CREATE TABLE FUNCIONARIOS_AQB_LOG (
     ID_LOG NUMBER PRIMARY KEY,
